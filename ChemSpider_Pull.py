@@ -1,7 +1,7 @@
 import pubchempy as pcp
 from chemspipy import ChemSpider
 
-cs = ChemSpider('Security Token')
+cs = ChemSpider('token')
 
 
 # This uses pubchem, despite chemspipy functionality to make sure all websites retrieve exact same entry

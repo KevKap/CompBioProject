@@ -23,7 +23,7 @@ def database_search(compound_name, isBiological = True):
     except:
         return '\nCompound not found in databases. Check spelling or try using an alternative name.'
 
-def rank_data(compound_name, isBiological):
+def enhanced_rank_data(compound_name, isBiological, rank_weights):
     """Ranks data from given data vecotrs (vecotrs are in the form [data sources, literature, data fields]
     Uses metric 0.5*literature + 0.3*data_sources + 0.2*data_fields"""
     if isBiological:
@@ -55,9 +55,11 @@ def rank_data(compound_name, isBiological):
         pubchem = [pubchem[0]/max_data_sources, pubchem[1]/max_literature, pubchem[2]/max_data_fields]
 
         # Ranks in a dictionary to allow easier sorting
-        ranking_dictionary = {'kegg': 0.5*kegg[1] + 0.3*kegg[0] + 0.2*kegg[2],
-                              'chemspider': 0.5*chemspider[1] + 0.3*chemspider[0] + 0.2*chemspider[2],
-                              'pubchem':  0.5*pubchem[1] + 0.3*pubchem[0] + 0.2*pubchem[2]}
+        ranking_dictionary = {'kegg': rank_weights[0]*kegg[1] + rank_weights[1]*kegg[0] + rank_weights[2]*kegg[2],
+                              'chemspider': rank_weights[0]*chemspider[1] + rank_weights[1]*chemspider[0] +
+                                            rank_weights[2]*chemspider[2],
+                              'pubchem':  rank_weights[0]*pubchem[1] + rank_weights[1]*pubchem[0] +
+                                          rank_weights[2]*pubchem[2]}
 
         return sorted(ranking_dictionary.items(), key=lambda x: x[1])
 
@@ -82,11 +84,13 @@ def rank_data(compound_name, isBiological):
         pubchem = [pubchem[0]/max_data_sources, pubchem[1]/max_literature, pubchem[2]/max_data_fields]
 
         # Ranks in a dictionary to allow easier sorting
-        ranking_dictionary = {'chemspider': 0.5 * chemspider[1] + 0.3 * chemspider[0] + 0.2 * chemspider[2],
-                              'pubchem': 0.5 * pubchem[1] + 0.3 * pubchem[0] + 0.2 * pubchem[2]}
+        ranking_dictionary = {'chemspider': rank_weights[0] * chemspider[1] + rank_weights[1] * chemspider[0] +
+                                            rank_weights[2] * chemspider[2],
+                              'pubchem': rank_weights[0] * pubchem[1] + rank_weights[1] * pubchem[0] +
+                                         rank_weights[2]* pubchem[2]}
         return sorted(ranking_dictionary.items(), key=lambda x: x[1])
 
-def main_search(compound_name, isBiological = True):
+def enhanced_main_search(compound_name, rank_weights, isBiological = True):
     """"This function will eventually use results of the ranking algorithm to determine return order"""
 
     # Websites returned in [pc, chemspi, kegg] or [pc, chemspi]
@@ -97,7 +101,7 @@ def main_search(compound_name, isBiological = True):
     if isBiological:
         # Ranking is a list of tuples sorted by lowest rank to highest
         #  Where the first entry in each tuple is the source
-        ranking = rank_data(compound_name, isBiological)
+        ranking = enhanced_rank_data(compound_name, isBiological, rank_weights)
 
         # Determines the ranking order
         last = ranking[0]
@@ -112,7 +116,7 @@ def main_search(compound_name, isBiological = True):
     else:
         # Ranking is a list of tuples sorted by lowest rank to highest
         #  Where the first entry in each tuple is the source
-        ranking = rank_data(compound_name, isBiological)
+        ranking = enhanced_rank_data(compound_name, isBiological, rank_weights)
 
         # Determines the ranking order
         last = ranking[0]
